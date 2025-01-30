@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Resultados de Rifas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Resultados de Rifas</h1>
+        <table>
+            <tr>
+                <th>Nombre</th>
+                <th>Cédula</th>
+                <th>Teléfono</th>
+                <th>Números Escogidos</th>
+                <th>Ticket</th>
+            </tr>
+            {% for raffle in raffles %}
+            <tr>
+                <td>{{ raffle.name }}</td>
+                <td>{{ raffle.id_number }}</td>
+                <td>{{ raffle.phone }}</td>
+                <td>{{ raffle.chosen_numbers | join(", ") }}</td>
+                <td>{{ raffle.ticket_number }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <button onclick="location.href='/export_results'">Exportar a Excel</button>
+    </div>
+</body>
+</html>

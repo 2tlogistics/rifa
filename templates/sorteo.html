@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Sorteo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .spinner {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+        .winner {
+            font-size: 2em;
+            font-weight: bold;
+            color: red;
+            animation: blink 1s step-start infinite;
+        }
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sorteo de Rifas</h1>
+        <div id="spinnerContainer">
+            <!-- Números girando aquí -->
+        </div>
+        <div id="winnerContainer" style="display:none;">
+            <p class="winner">¡Número ganador: <span id="winnerNumber"></span>!</p>
+            <p>Nombre: <span id="winnerName"></span></p>
+            <p>Cédula: <span id="winnerId"></span></p>
+        </div>
+        <button onclick="startRaffle()">Iniciar Sorteo</button>
+    </div>
+    <script>
+        const raffles = {{ raffles | tojson }};
+        const spinnerContainer = document.getElementById('spinnerContainer');
+        const winnerContainer = document.getElementById('winnerContainer');
+        const winnerNumber = document.getElementById('winnerNumber');
+        const winnerName = document.getElementById('winnerName');
+        const winnerId = document.getElementById('winnerId');
+        
+        function startRaffle() {
+            spinnerContainer.innerHTML = '';
+            winnerContainer.style.display = 'none';
+            
+            // Mostrar los números girando
+            raffles.forEach(raffle => {
+                raffle.chosen_numbers.forEach(number => {
+                    const numberElement = document.createElement('div');
+                    numberElement.classList.add('spinner');
+                    numberElement.innerText = number;
+                    spinnerContainer.appendChild(numberElement);
+                });
+            });
+            
+            // Iniciar giro de números
+            setTimeout(() => {
+                const allNumbers = raffles.flatMap(raffle => raffle.chosen_numbers);
+                const winnerIndex = Math.floor(Math.random() * allNumbers.length);
+                const winnerNumberValue = allNumbers[winnerIndex];
+                
+                const winnerRaffle = raffles.find(raffle => raffle.chosen_numbers.includes(winnerNumberValue));
+                
+                winnerNumber.innerText = winnerNumberValue;
+                winnerName.innerText = winnerRaffle.name;
+                winnerId.innerText = winnerRaffle.id_number;
+                
+                spinnerContainer.innerHTML = '';
+                winnerContainer.style.display = 'block';
+            }, 20000);
+        }
+    </script>
+</body>
+</html>

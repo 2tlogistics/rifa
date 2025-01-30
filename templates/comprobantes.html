@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Comprobantes de Rifas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Comprobantes de Rifas</h1>
+        <table>
+            <tr>
+                <th>Ticket</th>
+                <th>Cédula</th>
+                <th>Imagen</th>
+            </tr>
+            {% for raffle in raffles %}
+            <tr>
+                <td>{{ raffle.ticket_number }}</td>
+                <td>{{ raffle.id_number }}</td>
+                <td><img src="data:image/jpeg;base64,{{ raffle.image_b64 }}" alt="Imagen de {{ raffle.ticket_number }}" width="100"></td>
+            </tr>
+            {% endfor %}
+        </table>
+        <button onclick="location.href='/export_comprobantes'">Exportar a Excel</button>
+    </div>
+</body>
+</html>

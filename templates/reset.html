@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reset de Rifas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            text-align: center;
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #FF4500;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #FF6347;
+        }
+
+        .confirm-button {
+            background-color: #4CAF50;
+        }
+
+        .confirm-button:hover {
+            background-color: #45a049;
+        }
+
+        .cancel-button {
+            background-color: #2196F3;
+        }
+
+        .cancel-button:hover {
+            background-color: #0b7dda;
+        }
+
+        #confirmation {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Reset de Rifas</h1>
+        <p>Esta acción creará un backup del archivo <strong>raffles.json</strong> y luego borrará sus datos.</p>
+        <button onclick="confirmReset()">Resetear Rifas</button>
+        
+        <div id="confirmation">
+            <p>¿Estás seguro que deseas realizar esta acción?</p>
+            <form method="POST" action="{{ url_for('backup_and_reset') }}">
+                <button type="submit" class="confirm-button">Confirmar</button>
+            </form>
+            <button class="cancel-button" onclick="cancelReset()">Cancelar</button>
+        </div>
+    </div>
+    
+    <script>
+        function confirmReset() {
+            document.getElementById('confirmation').style.display = 'block';
+        }
+
+        function cancelReset() {
+            document.getElementById('confirmation').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

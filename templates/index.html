@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Rifas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            text-align: center;
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        label {
+            margin-top: 15px;
+            font-weight: bold;
+            color: #444;
+        }
+
+        input[type="text"], input[type="file"] {
+            margin-top: 5px;
+            margin-bottom: 10px;
+            padding: 10px;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .payment-info {
+            margin-top: 20px;
+            font-size: 1.1em;
+            color: #555;
+        }
+
+        .results-button {
+            margin-top: 20px;
+            background-color: #2196F3;
+        }
+
+        .results-button:hover {
+            background-color: #0b7dda;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Rifa</h1>
+        <p class="payment-info">Rifa $1pipg00 - Ticket $1</p>
+        <form id="raffleForm">
+            <label for="name">Nombre:</label>
+            <input type="text" id="name" name="name" required>
+            
+            <label for="id_number">Cédula:</label>
+            <input type="text" id="id_number" name="id_number" required>
+            
+            <label for="phone">Teléfono:</label>
+            <input type="text" id="phone" name="phone" required>
+            
+            <label for="chosen_numbers">Números escogidos (1-100):</label>
+            <input type="text" id="chosen_numbers" name="chosen_numbers" required placeholder="Ej. 5,12,23">
+            
+            <button type="button" onclick="checkNumbers()">Verificar Números</button>
+            
+            <div id="imageUpload" style="display:none; width: 100%;">
+                <label for="image">Subir imagen:</label>
+                <input type="file" id="image" name="image" required>
+                <button type="submit">Pagar</button>
+            </div>
+        </form>
+        
+        <button class="results-button" id="showTicketButton" style="display:none;" onclick="showTicket()">Mostrar Ticket</button>
+        
+        <div id="ticket"></div>
+        <a id="downloadLink" style="display:none;">Descargar Ticket</a>
+    </div>
+    
+    <script>
+        const form = document.getElementById('raffleForm');
+        const showTicketButton = document.getElementById('showTicketButton');
+        const downloadLink = document.getElementById('downloadLink');
+        
+        async function checkNumbers() {
+            const chosenNumbersInput = document.getElementById('chosen_numbers');
+            const chosenNumbers = chosenNumbersInput.value.split(',').map(num => num.trim());
+            
+            try {
+                const response = await fetch('/check_numbers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ chosen_numbers: chosenNumbers })
+                });
+                
+                const result = await response.json();
+                
+                if (result.error) {
+                    alert(result.error);
+                } else {
+                    document.getElementById('imageUpload').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(form);
+            const numbers = formData.get('chosen_numbers').split(',').map(num => num.trim());
+            formData.delete('chosen_numbers');
+            numbers.forEach(num => formData.append('chosen_numbers', num));
+            
+            try {
+                const response = await fetch('/submit', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                alert(result.success || result.error);
+                
+                // Mostrar el botón "Mostrar Ticket" después de pagar
+                showTicketButton.style.display = 'block';
+                showTicket(result.ticket_number);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        });
+        
+        function showTicket(ticketNumber) {
+            const chosenNumbers = document.getElementById('chosen_numbers').value.split(',').map(num => num.trim());
+            const name = document.querySelector('input[name="name"]').value;
+            const id_number = document.querySelector('input[name="id_number"]').value;
+            const phone = document.querySelector('input[name="phone"]').value;
+            
+            const ticket = {
+                name: name,
+                id_number: id_number,
+                phone: phone,
+                chosen_numbers: chosenNumbers,
+                ticket_number: ticketNumber
+            };
+            
+            const ticketDiv = document.getElementById('ticket');
+            ticketDiv.innerHTML = `<pre>${JSON.stringify(ticket, null, 2)}</pre>`;
+            
+            // Generar imagen del ticket y permitir descarga
+            html2canvas(ticketDiv).then(canvas => {
+                downloadLink.href = canvas.toDataURL('image/jpeg');
+                downloadLink.download = `ticket_${ticketNumber}.jpg`;
+                downloadLink.style.display = 'block';
+                downloadLink.innerText = 'Descargar Ticket';
+                
+                // Limpiar campos y ticket después de descargar
+                setTimeout(() => {
+                    form.reset();
+                    document.getElementById('imageUpload').style.display = 'none';
+                    showTicketButton.style.display = 'none';
+                    ticketDiv.innerHTML = '';
+                    downloadLink.style.display = 'none';
+                }, 10000); // Ajusta el tiempo según sea necesario
+            });
+        }
+    </script>
+</body>
+</html>
