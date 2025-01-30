@@ -153,4 +153,4 @@ def export_comprobantes():
     return send_file(output, as_attachment=True, download_name='Comprobantes_Rifas.xlsx', mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
